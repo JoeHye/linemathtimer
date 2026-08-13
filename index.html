@@ -281,6 +281,30 @@
     margin-top:6px;
   }
 
+  .countdown-block{
+    padding:14px 0 16px;
+    border-bottom:1px dashed #B7AF97;
+    margin-bottom:16px;
+    text-align:center;
+  }
+  .countdown-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin-bottom:4px;
+  }
+  .countdown-time{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:52px;
+    line-height:1;
+    color:var(--ink);
+    letter-spacing:0.01em;
+    font-variant-numeric:tabular-nums;
+  }
+  .countdown-time.done{color:var(--thermal);}
+
   .breakdown{
     font-family:'IBM Plex Mono', monospace;
     font-size:12px;
@@ -548,6 +572,11 @@
           <div class="range" id="range-text">Usually between 14–26 min</div>
         </div>
 
+        <div class="countdown-block" id="countdown-block">
+          <div class="countdown-label" id="countdown-label">Time remaining</div>
+          <div class="countdown-time" id="countdown-time">00:00</div>
+        </div>
+
         <div class="breakdown">
           <div class="line"><span>People ahead</span><strong id="bd-people">8</strong></div>
           <div class="line"><span>Servers open</span><strong id="bd-servers">1</strong></div>
@@ -610,6 +639,8 @@
     const ready = new Date(now.getTime() + waitMin * 60000);
     document.getElementById('bd-issued').textContent = fmtTime(now);
     document.getElementById('bd-ready').textContent = fmtTime(ready);
+
+    retargetCountdown(waitMin);
   }
 
   modeSingle.addEventListener('click', () => {
@@ -653,101 +684,4 @@
   let rafId = null;
 
   function fmtStopwatch(ms){
-    const totalTenths = Math.floor(ms / 100);
-    const tenths = totalTenths % 10;
-    const totalSeconds = Math.floor(ms / 1000);
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60);
-    return String(minutes).padStart(2,'0') + ':' + String(seconds).padStart(2,'0') + '.' + tenths;
-  }
-
-  function tick(){
-    const now = performance.now() - startTime;
-    swTimeEl.textContent = fmtStopwatch(now);
-    rafId = requestAnimationFrame(tick);
-  }
-
-  function renderLaps(){
-    lapsList.innerHTML = '';
-    lapsEmpty.style.display = laps.length ? 'none' : 'block';
-    laps.forEach((ms, i) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>Person ${i + 1}</span><span>${(ms/1000).toFixed(1)}s</span>`;
-      lapsList.appendChild(li);
-    });
-    lapsProgress.innerHTML = laps.length < MIN_LAPS
-      ? `Clocked <strong>${laps.length}</strong> of ${MIN_LAPS} minimum`
-      : `Clocked <strong>${laps.length}</strong> — baseline ready`;
-
-    if (laps.length > 0){
-      const avgMs = laps.reduce((a,b) => a+b, 0) / laps.length;
-      const avgMin = avgMs / 60000;
-      baselineAvg.innerHTML = `Average: <strong>${avgMin.toFixed(2)} min</strong>/person`;
-      useAvgBtn.disabled = laps.length < MIN_LAPS;
-      useAvgBtn.dataset.avg = avgMin.toFixed(2);
-      useAvgBtn.title = laps.length < MIN_LAPS
-        ? `Clock ${MIN_LAPS - laps.length} more to unlock`
-        : 'Apply this average to the calculator';
-    } else {
-      baselineAvg.innerHTML = 'Average: —';
-      useAvgBtn.disabled = true;
-      useAvgBtn.title = '';
-    }
-  }
-
-  swStartBtn.addEventListener('click', () => {
-    if (!running){
-      running = true;
-      startTime = performance.now() - elapsedAtStop;
-      lastLapTime = performance.now() - elapsedAtStop;
-      swStartBtn.textContent = 'Pause';
-      swStatusEl.textContent = 'Timing…';
-      swStatusEl.classList.add('live');
-      swLapBtn.disabled = false;
-      rafId = requestAnimationFrame(tick);
-    } else {
-      running = false;
-      elapsedAtStop = performance.now() - startTime;
-      cancelAnimationFrame(rafId);
-      swStartBtn.textContent = 'Resume';
-      swStatusEl.textContent = 'Paused';
-      swStatusEl.classList.remove('live');
-      swLapBtn.disabled = true;
-    }
-  });
-
-  swLapBtn.addEventListener('click', () => {
-    if (!running) return;
-    const now = performance.now() - startTime;
-    laps.push(now - lastLapTime);
-    lastLapTime = now;
-    renderLaps();
-  });
-
-  swResetBtn.addEventListener('click', () => {
-    running = false;
-    cancelAnimationFrame(rafId);
-    startTime = 0;
-    lastLapTime = 0;
-    elapsedAtStop = 0;
-    laps = [];
-    swTimeEl.textContent = '00:00.0';
-    swStartBtn.textContent = 'Start';
-    swStatusEl.textContent = 'Ready';
-    swStatusEl.classList.remove('live');
-    swLapBtn.disabled = true;
-    renderLaps();
-  });
-
-  useAvgBtn.addEventListener('click', () => {
-    if (useAvgBtn.disabled) return;
-    serviceEl.value = useAvgBtn.dataset.avg;
-    calc();
-    serviceEl.parentElement.scrollIntoView({behavior:'smooth', block:'center'});
-  });
-
-  renderLaps();
-  calc();
-</script>
-</body>
-</html>
+    const total
